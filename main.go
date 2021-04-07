@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"io/ioutil"
 )
 
 //Main Function
@@ -18,6 +19,8 @@ func handleRequest(){
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", homePage)
 	r.HandleFunc("/sessions", returnAllSessions)
+	r.HandleFunc("/session",createSession).Methods("POST")
+	r.HandleFunc("/session/{id}", deleteSession).Methods("DELETE")
 	r.HandleFunc("/session/{id}", returnSingleSession)
 	log.Fatal(http.ListenAndServe(":10000", r))
 
@@ -38,6 +41,14 @@ func returnAllSessions(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(SpaSessions)
 }
 
+func createSession(w http.ResponseWriter, r *http.Request){
+    reqBody, _ := ioutil.ReadAll(r.Body)
+    var session SpaSession
+    json.Unmarshal(reqBody, &session)
+    SpaSessions = append(SpaSessions, session)
+    json.NewEncoder(w).Encode(session)
+}
+
 func returnSingleSession(w http.ResponseWriter, r *http.Request){
     vars := mux.Vars(r)
     key := vars["id"]
@@ -47,6 +58,17 @@ func returnSingleSession(w http.ResponseWriter, r *http.Request){
         }
     }
 }
+
+func deleteSession(w http.ResponseWriter, r *http.Request){
+    vars := mux.Vars(r)
+    id := vars["id"]
+    for index, session := range SpaSessions{
+        if session.Id == id{
+            SpaSessions = append(SpaSessions[:index],SpaSessions[index+1:]...)
+        }
+    }
+}
+
 
 
 type SpaSession struct {
