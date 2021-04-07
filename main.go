@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"encoding/json"
-
+	"github.com/gorilla/mux"
 )
 
 //Main Function
@@ -18,6 +18,7 @@ func handleRequest(){
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", homePage)
 	r.HandleFunc("/sessions", returnAllSessions)
+	r.HandleFunc("/session/{id}", returnSingleSession)
 	log.Fatal(http.ListenAndServe(":10000", r))
 
 }
@@ -37,6 +38,15 @@ func returnAllSessions(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(SpaSessions)
 }
 
+func returnSingleSession(w http.ResponseWriter, r *http.Request){
+    vars := mux.Vars(r)
+    key := vars["id"]
+    for _, session := range SpaSessions {
+        if session.Id == key{
+            json.NewEncoder(w).Encode(session)
+        }
+    }
+}
 
 
 type SpaSession struct {
